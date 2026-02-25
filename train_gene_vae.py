@@ -1,9 +1,7 @@
 import torch
-import numpy as np
 import pandas as pd
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 
 from GeneVAE import GeneVAE
 from utils import get_device, common
@@ -38,8 +36,15 @@ def load_gene_expression_dataset(args):
     )
     # Use only gene values to train the GeneVAE (omit smiles and inchikey)
     data = data.iloc[:, 2:]
-    # Drop the nan row
-    data = data.dropna(how='any')
+    # Keep rows with at least one observed gene value, then impute missing entries.
+    # Using dropna(how='any') can remove all rows when sparse values are present.
+    data = data.dropna(how='all').fillna(0.0)
+    if len(data) == 0:
+        raise ValueError(
+            'No valid gene expression rows found in {}{}.csv'.format(
+                args.gene_expression_file, args.cell_name
+            )
+        )
     # Normalize data per gene 
     #data = (data - data.mean())/data.std()
 
