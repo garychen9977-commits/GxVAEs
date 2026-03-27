@@ -500,7 +500,7 @@ class SmilesVAE(nn.Module):
         condition,
         max_len,
         tokenizer,
-        sampling_temperature=1.0
+        sampling_temperature=0.1
     ):
         batch_size = rand_z.size(0)
         device = rand_z.device
@@ -522,7 +522,7 @@ class SmilesVAE(nn.Module):
             next_token = torch.multinomial(probs, 1)
     
             step_log_probs = torch.log_softmax(logits, dim=1)
-            log_probs += step_log_probs.gather(1, next_token).squeeze(1)
+            log_probs = log_probs + step_log_probs.gather(1, next_token).squeeze(1)
     
             generated_tokens[:, i] = next_token.squeeze(1)
             input_token = next_token
